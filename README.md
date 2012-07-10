@@ -18,7 +18,9 @@ Main features
 
 ###Construct complex join statements ("JOIN something ON <...>") using arel notation:
     City.advanjo(River){|city,river|city[:river_id].eq(river[:id])}
+
   you can also construct LEFT OUTER JOIN:
+
     City.outer_advanjo(River){...}
     City.advanjo(River, :outer){...}
 
