@@ -48,12 +48,14 @@ class ActiveRecord::Relation
   #Add join to your ActiveRecord::Relation object using arel notation
   #
   #@param   right [ActiveRecord::Relation, ActiveRecord::Base, Arel::Table, Arel::Nodes::TableAlias, Symbol]
-  #@return  ActiveRecord::Relation
-  def advanjo(right, join_type=:inner,&block)
+  #@param   join_type [Symbol]  :inner or :outer
+  #@block   join on condition in arel notation. Variables passed to block is Arel::Nodes::TableAlias or Arel::Table.
+  #         first variable is left table in join and second is right table in join (that you passed as `right` param)
+  #@return  ActiveRecord::Relation  relation with new join statement
+  def advanjo(right, join_type=:inner, alias_name=nil,&block)
     right = right.arel_table if right.class==Class && right.ancestors.include?(ActiveRecord::Base)
     right = right.as_sub_query if right.kind_of?(ActiveRecord::Relation)
 
-    puts right.class
     right=case right.class.to_s
            when "Advanjo::SubQuery"
              right.arel_table_alias
@@ -64,8 +66,14 @@ class ActiveRecord::Relation
            else
              raise "Unsupported right join part passed"
           end
+
     join_class = (join_type == :outer) ? Arel::Nodes::OuterJoin : Arel::Nodes::InnerJoin
-    joins(arel_table.join(right, join_class).on(yield(arel_table, right)).join_sources.first)
+
+    right=right.alias(alias_name.to_s) unless alias_name.blank?
+    alias_statement = arel_table.join(right, join_class)
+    alias_statement = alias_statement.on(yield(arel_table, right))
+
+    joins(alias_statement.join_sources.first)
   end
 
   #LEFT OUTER JOIN

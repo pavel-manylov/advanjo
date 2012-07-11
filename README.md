@@ -4,7 +4,7 @@ Advanjo gives you freedom to create complex joins in ActiveRecord using power of
 
 Main features
 --------------
-###Extract sub_query and use it in `advanjo` joins:
+###Extract subquery and use it in `advanjo` joins:
 
     sq = some_active_record_relation_object.as_advanjo_sub_query
 
@@ -26,7 +26,20 @@ Main features
 
 ###Use anything you want as join source:
 
-    City.advanjo(:rivers){...} #Symbol as table_name
+    City.advanjo(:rivers){...} #Symbol as table name
     City.advanjo(Arel::Table.new("rivers")){...}  #Arel::Table instance
     City.advanjo(River.where(...)){...} #ActiveRecord::Relation instance
     City.advanjo(River){...} #ActiveRecord model
+
+###Set alias name to your join
+    Zoo.advanjo(:cat, :inner, :dog){...}
+    City.advanjo(:rivers, :outer, :river){...} #for has_one and belongs_to singular name of associations
+
+Changes
+-------
+0.0.1 - Initial commit
+0.0.2 - Alias support
+
+TODO
+-----
+Tests, clear examples
