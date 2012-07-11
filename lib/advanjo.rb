@@ -21,18 +21,18 @@ module Advanjo
 
     class <<self
       def next_alias_id!(table_name)
+        #TODO change to uniq alias in query, not in all queries
         table_name = table_name.to_sym
         @aliases = {} unless defined?(@aliases)
         if @aliases[table_name].nil?
-          @aliases[table_name]=1
+          @aliases[table_name]=0
         else
           @aliases[table_name]+=1
         end
-        @aliases[table_name]
       end
 
       def next_alias!(table_name)
-        "#{table_name}_sq_#{next_alias_id!(table_name)}"
+        "#{table_name}_sq_#{next_alias_id!(table_name).to_s(36)}"
       end
     end
   end
@@ -47,14 +47,15 @@ end
 class ActiveRecord::Relation
   #Add join to your ActiveRecord::Relation object using arel notation
   #
-  #@param   right [ActiveRecord::Relation, ActiveRecord::Base, Arel::Table, Arel::Nodes::TableAlias, Symbol]
-  #@param   join_type [Symbol]  :inner or :outer
-  #@block   join on condition in arel notation. Variables passed to block is Arel::Nodes::TableAlias or Arel::Table.
+  #@param   right       [ActiveRecord::Relation, ActiveRecord::Base, Arel::Table, Arel::Nodes::TableAlias, Symbol]
+  #@param   join_type   [Symbol]  :inner or :outer
+  #@param   alias_name  [String, Symbol]  set alias_name as alias for joined table
+  #@block   join on condition in arel notation. Variables passed to block are Arel::Nodes::TableAlias or Arel::Table.
   #         first variable is left table in join and second is right table in join (that you passed as `right` param)
   #@return  ActiveRecord::Relation  relation with new join statement
   def advanjo(right, join_type=:inner, alias_name=nil,&block)
     right = right.arel_table if right.class==Class && right.ancestors.include?(ActiveRecord::Base)
-    right = right.as_sub_query if right.kind_of?(ActiveRecord::Relation)
+    right = right.as_advanjo_sub_query if right.kind_of?(ActiveRecord::Relation)
 
     right=case right.class.to_s
            when "Advanjo::SubQuery"
