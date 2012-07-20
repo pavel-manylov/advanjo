@@ -40,12 +40,12 @@ end
 
 class ActiveRecord::Base
   class <<self
-    delegate :advanjo, :outer_advanjo, :to => :scoped
+    delegate :construct_advanjo, :advanjo, :outer_advanjo, :to => :scoped
   end
 end
 
 class ActiveRecord::Relation
-  #Add join to your ActiveRecord::Relation object using arel notation
+  #Construct join using arel notation
   #
   #@param   right       [ActiveRecord::Relation, ActiveRecord::Base, Arel::Table, Arel::Nodes::TableAlias, Symbol]
   #@param   join_type   [Symbol]  :inner or :outer
@@ -53,7 +53,7 @@ class ActiveRecord::Relation
   #@block   join on condition in arel notation. Variables passed to block are Arel::Nodes::TableAlias or Arel::Table.
   #         first variable is left table in join and second is right table in join (that you passed as `right` param)
   #@return  ActiveRecord::Relation  relation with new join statement
-  def advanjo(right, join_type=:inner, alias_name=nil,&block)
+  def construct_advanjo(right, join_type=:inner, alias_name=nil,&block)
     right = right.arel_table if right.class==Class && right.ancestors.include?(ActiveRecord::Base)
     right = right.as_advanjo_sub_query if right.kind_of?(ActiveRecord::Relation)
 
@@ -74,7 +74,12 @@ class ActiveRecord::Relation
     alias_statement = arel_table.join(right, join_class)
     alias_statement = alias_statement.on(yield(arel_table, right))
 
-    joins(alias_statement.join_sources.first)
+    alias_statement.join_sources.first
+  end
+
+  # Construct and add join to your ActiveRecord::Relation object
+  def advanjo(*args, &block)
+    joins construct_advanjo(*args, &block)
   end
 
   #LEFT OUTER JOIN
