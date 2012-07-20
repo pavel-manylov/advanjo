@@ -60,7 +60,7 @@ class ActiveRecord::Relation
     right=case right.class.to_s
            when "Advanjo::SubQuery"
              right.arel_table_alias
-           when "Arel::Table" || "Arel::Nodes::TableAlias"
+           when "Arel::Table", "Arel::Nodes::TableAlias"
              right
            when "Symbol"
              Arel::Table.new(right)
