@@ -5,9 +5,10 @@
 #Some good examples can be found in README.MD file
 module Advanjo
   class SubQuery
-    #@param   ar_object [ActiveRecord::Relation]
-    def initialize(ar_object)
-      @sub_query=ar_object.build_arel.as(self.class.next_alias!(ar_object.table_name))
+    #@param   ar_object   [ActiveRecord::Relation]
+    #@param   alias_name  [String, NilClass]
+    def initialize(ar_object, alias_name = nil)
+      @sub_query=ar_object.build_arel.as(alias_name || self.class.next_alias!(ar_object.table_name))
     end
 
     #redirect all unknown queries to Arel::Nodes::TableAlias
@@ -87,7 +88,8 @@ class ActiveRecord::Relation
     advanjo(right, :outer, &block)
   end
 
-  def as_advanjo_sub_query
-    Advanjo::SubQuery.new(self)
+  #@param   alias_name  [String, NilClass]
+  def as_advanjo_sub_query(alias_name = nil)
+    Advanjo::SubQuery.new(self, alias_name)
   end
 end
