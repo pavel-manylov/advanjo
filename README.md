@@ -14,7 +14,7 @@ Main features
     cities_ar=City.arel_table
     City.advanjo(tsq){|city,ts| city[:id].eq(ts[:city_id])}.
          where(tsq[:average_temperature].gt(25)).
-         select([cities_ar["*"], tsq["average_temperature"].as("temperature")])
+         select([cities_ar[Arel.star], tsq["average_temperature"].as("temperature")])
 
 ###Construct complex join statements ("JOIN something ON <...>") using arel notation:
     City.advanjo(River){|city,river|city[:river_id].eq(river[:id])}
