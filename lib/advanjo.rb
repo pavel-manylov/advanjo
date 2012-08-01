@@ -8,7 +8,8 @@ module Advanjo
     #@param   ar_object   [ActiveRecord::Relation]
     #@param   alias_name  [String, NilClass]
     def initialize(ar_object, alias_name = nil)
-      @sub_query=ar_object.build_arel.as(alias_name || self.class.next_alias!(ar_object.table_name))
+      als = alias_name.to_s
+      @sub_query=ar_object.build_arel.as(als.blank? ? self.class.next_alias!(ar_object.table_name) : als)
     end
 
     #redirect all unknown queries to Arel::Nodes::TableAlias
@@ -56,7 +57,7 @@ class ActiveRecord::Relation
   #@return  ActiveRecord::Relation  relation with new join statement
   def construct_advanjo(right, join_type=:inner, alias_name=nil,&block)
     right = right.arel_table if right.class==Class && right.ancestors.include?(ActiveRecord::Base)
-    right = right.as_advanjo_sub_query if right.kind_of?(ActiveRecord::Relation)
+    right = right.as_advanjo_sub_query(alias_name) if right.kind_of?(ActiveRecord::Relation)
 
     right=case right.class.to_s
            when "Advanjo::SubQuery"
@@ -71,7 +72,7 @@ class ActiveRecord::Relation
 
     join_class = (join_type == :outer) ? Arel::Nodes::OuterJoin : Arel::Nodes::InnerJoin
 
-    right=right.alias(alias_name.to_s) unless alias_name.blank?
+    right=right.alias(alias_name.to_s) unless alias_name.blank? || right.class.name == 'Arel::Nodes::TableAlias'
     alias_statement = arel_table.join(right, join_class)
     alias_statement = alias_statement.on(yield(arel_table, right))
 
